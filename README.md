@@ -1,18 +1,15 @@
 <p align="center">
   <a href="https://www.dyne.org">
-    <img alt="{project_name}" src="https://via.placeholder.com/150.png?text=LOGO" width="150" />
+    <img alt="consiglio-crypto" src="https://decidiamo.it/assets/Emblem150.png" width="150" />
   </a>
 </p>
 
 <h1 align="center">
-  {project_name}</br>
+  consiglio-crypto</br>
   <sub>{tagline}</sub>
 </h1>
 
 <p align="center">
-  <a href="https://travis-ci.com/DECODEproject/{project_name}">
-    <img src="https://travis-ci.com/DECODEproject/{project_name}.svg?branch=master" alt="Build Status">
-  </a>
   <a href="https://dyne.org">
     <img src="https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%9D%A4%20by-Dyne.org-blue.svg" alt="Dyne.org">
   </a>
@@ -66,20 +63,20 @@ Abstract description like: 🚧 Zenroom is a software in **ALPHA stage** and are
 
 ***
 ## 💾 Install
-```pip install / yard add {project_name}```
+```pip install / yard add consiglio-crypto```
 
 
 ***
 ## 🎮 Quick start
 
-To start using {project_name} just (fill with real documentation)
+To start using consiglio-crypto just (fill with real documentation)
 
 ***
 ## 🐋 Docker
 
 ```bash
-docker build -t {project_name} .
-docker run --rm -it {project_name}
+docker build -t consiglio-crypto .
+docker run --rm -it consiglio-crypto
 ```
 
 ***
@@ -134,7 +131,7 @@ Please first take a look at the [Dyne.org - Contributor License Agreement](CONTR
 
 ***
 ## 💼 License
-    {project_name} - {tagline}
+    consiglio-crypto - {tagline}
     Copyright (c) 2019 Dyne.org foundation, Amsterdam
 
     This program is free software: you can redistribute it and/or modify
