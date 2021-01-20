@@ -178,11 +178,11 @@ export const publishPetition = async (
   return JSON.parse(result);
 };
 
-const getIssuer = (issuer: {
+export const getIssuer = (issuer: {
   readonly issuerKeypair?: IssuerKeypair;
   readonly name?: string;
-}) => {
-  if (issuer.issuerKeypair) return issuer.issuerKeypair;
+}): Promise<IssuerKeypair> => {
+  if (issuer.issuerKeypair) Promise.resolve(issuer.issuerKeypair);
   return createIssuerKeypair(issuer.name ?? 'Decidiamo');
 };
 

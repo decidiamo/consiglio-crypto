@@ -18,7 +18,7 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn
-      - run: yarn test
+      - run: yarn cov
       - run: yarn cov:check
       - run: yarn doc:html
       - run: yarn doc:publish

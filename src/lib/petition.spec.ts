@@ -10,6 +10,7 @@ import {
   createSignatureCredential,
   createSignProof,
   generatePetition,
+  getIssuer,
   publishKeypair,
   publishPetition,
 } from './petition';
@@ -167,4 +168,25 @@ test('aggregateSignature', async (t) => {
   t.not(result.petition.scores.neg.right, 'f38=');
   t.not(result.petition.scores.pos.left, 'f38=');
   t.not(result.petition.scores.pos.right, 'f38=');
+});
+
+test('generatePetition with default values', async (t) => {
+  const name = faker.name.firstName();
+  const petitionName = faker.lorem.slug();
+  const participants = Array.from({ length: 30 }, () => faker.internet.email());
+  const result = await generatePetition(petitionName, name, participants, {});
+  t.log(result);
+  t.truthy(result.petition);
+  t.is(result.petition.scores.neg.left, 'f38=');
+  t.is(result.petition.scores.neg.right, 'f38=');
+  t.is(result.petition.scores.pos.left, 'f38=');
+  t.is(result.petition.scores.pos.right, 'f38=');
+});
+
+test('getIssuer', async (t) => {
+  const result = await getIssuer({});
+  const result2 = await getIssuer({ name: 'ISSUER' });
+  t.log(result);
+  t.is(Object.keys(result)[0], 'Decidiamo');
+  t.is(Object.keys(result2)[0], 'ISSUER');
 });
