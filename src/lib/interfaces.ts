@@ -54,6 +54,7 @@ export type Petition = {
   };
   readonly uid: string;
   readonly verifier?: Verifier;
+  readonly list?: readonly string[];
 };
 
 export type PetitionRequest = {
@@ -74,4 +75,38 @@ export type AcceptedPetition = {
 
 export type PublishedPetition = {
   readonly petition: Petition;
+};
+
+export type SignatureCredential = {
+  readonly credential_keypair: {
+    readonly private: string;
+    readonly public: string;
+  };
+
+  readonly credentials: {
+    readonly h: string;
+    readonly s: string;
+  };
+
+  readonly verifier: Verifier;
+};
+
+export type SignProof = {
+  readonly petition_signature: {
+    readonly proof: {
+      readonly kappa: string;
+      readonly nu: string;
+      readonly pi_v: {
+        readonly c: string;
+        readonly rm: string;
+        readonly rr: string;
+      };
+      readonly sigma_prime: {
+        readonly h_prime: string;
+        readonly s_prime: string;
+      };
+    };
+    readonly uid_signature: string;
+    readonly uid_petition: string;
+  };
 };

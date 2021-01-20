@@ -1,12 +1,14 @@
 import { zencode_exec } from 'zenroom';
 
-import {
+import type {
   AcceptedPetition,
   IssuerKeypair,
   Keypair,
   PetitionRequest,
   PublicKeypair,
   PublishedPetition,
+  SignatureCredential,
+  SignProof,
 } from './interfaces';
 
 const CONFIG = 'memmanager=lw';
@@ -41,9 +43,9 @@ export const createIssuerKeypair = async (
 ): Promise<IssuerKeypair> => {
   const { result } = await zencode_exec(
     `Scenario credential: publish verifier
-    Given that I am known as '${name}'
-    When I create the issuer keypair
-    Then print my 'issuer keypair'`,
+        Given that I am known as '${name}'
+        When I create the issuer keypair
+        Then print my 'issuer keypair'`,
     { conf: CONFIG }
   );
   return JSON.parse(result);
@@ -76,20 +78,20 @@ export const createPetitionRequest = async (
     Scenario credential: create the petition credentials
     Scenario petition: create the petition
     Scenario ecdh: sign the petition
-    Given that I am known as '${name}'
-    and I have my 'keypair'
-    and I have a 'string array' named 'participants'
-    When I verify 'participants' contains a list of emails
-    When I create the credential keypair
-    and I create the petition '${petitionName}'
-    When I create the signature of 'petition'
-    and I insert 'signature' in 'petition'
-    When I create the signature of 'participants'
-    and I rename the 'signature' to 'participants.signature'
-    Then print the 'petition'
-    and print the 'participants'
-    and print the 'participants.signature'
-    and print the 'public key' inside 'keypair'
+        Given that I am known as '${name}'
+            and I have my 'keypair'
+            and I have a 'string array' named 'participants'
+        When I verify 'participants' contains a list of emails
+            and I create the credential keypair
+            and I create the petition '${petitionName}'
+            and I create the signature of 'petition'
+            and I insert 'signature' in 'petition'
+            and I create the signature of 'participants'
+            and I rename the 'signature' to 'participants.signature'
+        Then print the 'petition'
+            and print the 'participants'
+            and print the 'participants.signature'
+            and print the 'public key' inside 'keypair'
   `,
     {
       data: JSON.stringify({ participants }),
@@ -107,9 +109,9 @@ export const publishKeypair = async (
   const { result } = await zencode_exec(
     `
     Scenario 'ecdh': Publish the public key
-Given that my name is in a 'string' named 'username'
-and I have my 'keypair'
-Then print my 'public key' from 'keypair'
+        Given that my name is in a 'string' named 'username'
+            and I have my 'keypair'
+        Then print my 'public key' from 'keypair'
     `,
     {
       keys: JSON.stringify(keypair),
@@ -129,17 +131,17 @@ export const acceptPetition = async (
     `
       Scenario ecdh
       Scenario petition
-      Given that I have a 'public key' from '${name}'
-      and I have a 'petition'
-      and I have a 'string array' named 'participants'
-      and I have a 'signature' named 'participants.signature'
-      When I verify the 'petition' is signed by '${name}'
-      and I verify the new petition to be empty
-      When I verify the 'participants' has a signature in 'participants.signature' by '${name}'
-      and I verify 'participants' contains a list of emails
-      Then print 'petition'
-      and print 'participants'
-      and print the 'uid' as 'string' inside 'petition'
+        Given that I have a 'public key' from '${name}'
+            and I have a 'petition'
+            and I have a 'string array' named 'participants'
+            and I have a 'signature' named 'participants.signature'
+        When I verify the 'petition' is signed by '${name}'
+            and I verify the new petition to be empty
+            and I verify the 'participants' has a signature in 'participants.signature' by '${name}'
+            and I verify 'participants' contains a list of emails
+        Then print 'petition'
+            and print 'participants'
+            and print the 'uid' as 'string' inside 'petition'
     `,
     {
       data: JSON.stringify(petitionRequest),
@@ -159,17 +161,132 @@ export const publishPetition = async (
     `
     Scenario credential
     Scenario petition
-    Given I am '${issuerName}'
-    and I have my 'issuer keypair'
-    and I have a 'petition'
-    When I create the copy of 'verifier' from dictionary 'issuer keypair'
-    and I rename the 'copy' to 'verifier'
-    and I insert 'verifier' in 'petition'
-    Then print the 'petition'
+        Given I am '${issuerName}'
+            and I have my 'issuer keypair'
+            and I have a 'petition'
+        When I create the copy of 'verifier' from dictionary 'issuer keypair'
+            and I rename the 'copy' to 'verifier'
+            and I insert 'verifier' in 'petition'
+        Then print the 'petition'
   `,
     {
       data: JSON.stringify(acceptedPetition),
       keys: JSON.stringify(issuerKeypair),
+      conf: CONFIG,
+    }
+  );
+  return JSON.parse(result);
+};
+
+const getIssuer = (issuer: {
+  readonly issuerKeypair?: IssuerKeypair;
+  readonly name?: string;
+}) => {
+  if (issuer.issuerKeypair) return issuer.issuerKeypair;
+  return createIssuerKeypair(issuer.name ?? 'Decidiamo');
+};
+
+export const generatePetition = async (
+  petitionName: string,
+  ownerName: string,
+  participants: readonly string[],
+  issuer: {
+    readonly issuerKeypair?: IssuerKeypair;
+    readonly issuerName?: string;
+  }
+): Promise<PublishedPetition> => {
+  const issuerKP = await getIssuer(issuer);
+  const keypair = await createKeypair(ownerName);
+  const pk = await publishKeypair(keypair);
+  const petitionRequest = await createPetitionRequest(
+    keypair,
+    participants,
+    petitionName
+  );
+  const acceptedPetition = await acceptPetition(petitionRequest, pk);
+  return await publishPetition(acceptedPetition, issuerKP);
+};
+
+export const createSignatureCredential = async (
+  issuerKeypair: IssuerKeypair,
+  participantEmail: string,
+  petitionUid: string
+): Promise<SignatureCredential> => {
+  const issuerName = Object.keys(issuerKeypair)[0];
+  const { result } = await zencode_exec(
+    ` 
+      Scenario credential
+        Given I am known as '${issuerName}'
+            and I have my 'issuer keypair'
+            and I have a 'string' named 'email'
+            and I have a 'string' named 'petition_uid'
+        When I append 'email' to 'petition_uid'
+            and I create the hash of 'petition_uid'
+            and I create the credential keypair with secret key 'hash'
+            and I create the credential request
+            and I create the credential signature
+            and I create the credentials
+        Then print the 'credentials'
+            and print the 'credential keypair'
+            and print the 'verifier'
+`,
+    {
+      keys: JSON.stringify(issuerKeypair),
+      data: JSON.stringify({
+        email: participantEmail,
+        petition_uid: petitionUid,
+      }),
+      conf: CONFIG,
+    }
+  );
+  return JSON.parse(result);
+};
+
+export const createSignProof = async (
+  signatureCredential: SignatureCredential,
+  petitionName: string,
+  participantEmail: string
+): Promise<SignProof> => {
+  const { result } = await zencode_exec(
+    `
+    Scenario credential
+    Scenario petition: sign petition
+        Given I am '${participantEmail}'
+            and I have a 'credential keypair'
+            and I have a 'credentials'
+            and I have a 'verifier'
+        When I aggregate the verifiers
+            and I create the petition signature '${petitionName}'
+        Then print the 'petition signature'
+    `,
+    {
+      data: JSON.stringify(signatureCredential),
+      conf: CONFIG,
+    }
+  );
+  return JSON.parse(result);
+};
+
+export const aggregateSignature = async (
+  petition: PublishedPetition,
+  signProof: SignProof,
+  issuerName: string
+): Promise<PublishedPetition> => {
+  const { result } = await zencode_exec(
+    `
+    Scenario credential
+    Scenario petition: aggregate signature
+        Given that I am '${issuerName}'
+            and I have a 'petition signature'
+            and I have a 'petition'
+        When the petition signature is not a duplicate
+            and the petition signature is just one more
+            and I add the signature to the petition
+        Then print the 'petition'
+    `,
+    {
+      data: JSON.stringify(petition),
+      keys: JSON.stringify(signProof),
       conf: CONFIG,
     }
   );

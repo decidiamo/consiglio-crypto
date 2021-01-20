@@ -16,9 +16,9 @@
  * import something from 'module-name';
  * something();
  * ```
- */
-declare module 'module-name' {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const whatever: any;
-  export = whatever;
-}
+//  */
+// declare module '*!zen' {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const whatever: any;
+//   export = whatever;
+// }
