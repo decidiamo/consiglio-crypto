@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/decidiamo/consiglio-crypto/compare/v1.0.0...v1.3.0) (2021-01-20)
+
+
+### Features
+
+* ✨  Fancy commits... (trigger release purpose) ([cf36806](https://github.com/decidiamo/consiglio-crypto/commit/cf36806f10bd4da629877c23e16cbfcd0ca0dbfe))
+
+
+### Bug Fixes
+
+* 🔖  Fix publishing restrictions ([38c8baf](https://github.com/decidiamo/consiglio-crypto/commit/38c8baf5ca8ac5844fae8d0ec825e796d4796ac2))
+* 🔖  Update package.json to tags ([cddaae1](https://github.com/decidiamo/consiglio-crypto/commit/cddaae1d2df97b050ad733039d6ce40843f75715))
+
+# [1.2.0](https://github.com/decidiamo/consiglio-crypto/compare/v1.1.0...v1.2.0) (2021-01-20)
+
+
+### Bug Fixes
+
+* 🔖  Fix publishing restrictions ([38c8baf](https://github.com/decidiamo/consiglio-crypto/commit/38c8baf5ca8ac5844fae8d0ec825e796d4796ac2))
+* 🔖  Update package.json to tags ([cddaae1](https://github.com/decidiamo/consiglio-crypto/commit/cddaae1d2df97b050ad733039d6ce40843f75715))
+
+
+### Features
+
+* ✨  Fancy commits... (trigger release purpose) ([cf36806](https://github.com/decidiamo/consiglio-crypto/commit/cf36806f10bd4da629877c23e16cbfcd0ca0dbfe))
+
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## 1.1.0 (2021-01-20)
 
 
