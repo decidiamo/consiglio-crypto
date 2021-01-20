@@ -1,6 +1,6 @@
 {
   "name": "@decidiamo/consiglio-crypto",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "Zenroom crypto flow for Decidiamo's 'Consiglio remoto' e-petition's platform",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -36,7 +36,8 @@
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
     "version": "standard-version",
     "reset-hard": "git clean -dfx && git reset --hard && yarn",
-    "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish"
+    "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish",
+    "semantic-release": "semantic-release"
   },
   "engines": {
     "node": ">=10"
@@ -47,6 +48,8 @@
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/git": "^9.0.0",
     "@types/faker": "^5.1.5",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
@@ -65,10 +68,34 @@
     "nyc": "^15.1.0",
     "open-cli": "^6.0.1",
     "prettier": "^2.1.1",
+    "semantic-release": "^17.3.4",
     "standard-version": "^9.0.0",
     "ts-node": "^9.0.0",
     "typedoc": "^0.20.16",
     "typescript": "^4.0.2"
+  },
+   "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/github",
+    "@semantic-release/npm",
+    "@semantic-release/git"
+  ],
+  "release": {
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      {
+        "path": "@semantic-release/git",
+        "assets": [
+          "package.json",
+          "yarn.lock",
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): 🚀 ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
   },
   "files": [
     "build/main",
@@ -104,5 +131,8 @@
     "exclude": [
       "**/*.spec.js"
     ]
+  },
+  "publishConfig": {
+    "access": "restricted"
   }
 }
