@@ -7,39 +7,6 @@
 . utils.sh
 Z="`detect_zenroom_path` `detect_zenroom_conf`"
 
-function json_extract {
-	if ! [ -r extract.jq ]; then
-		cat <<EOF > extract.jq
-# break out early
-def filter(\$key):
-  label \$out
-  | foreach inputs as \$in ( null;
-      if . == null
-      then if \$in[0][0] == \$key then \$in
-           else empty
-           end
-      elif \$in[0][0] != \$key then break \$out
-      else \$in
-      end;
-      select(length==2) );
-
-reduce filter(\$key) as \$in ({};
-  setpath(\$in[0]; \$in[1]) )
-EOF
-	fi
-	jq -n -c --arg key "$1" --stream -f extract.jq "$2"
-}
-
-function json_remove {
-	tmp=`mktemp`
-	jq -M "del(.$1)" $2 > $tmp
-	mv $tmp $2
-}
-
-function json_join {
-	jq -s . $@
-}
-
 # server generates its issuer key at installation
 cat <<EOF | zexe issuer_keygen.zen > issuer_keypair.json
 Scenario credential: publish verifier
@@ -155,38 +122,76 @@ Then print the 'petition'
 EOF
 
 
+cat <<EOF > title_and_timestamp.json
+{"petition_title": "More privacy for all!",
+ "timestamp": "1611181431" }
+EOF
+
+# create a unique petition id (UPID) hashing the title and the timestamp
+cat <<EOF | zexe hash_petition_id.zen -a title_and_timestamp.json -k issuer_keypair.json | tee upid.json | jq .
+Scenario credential
+Given I am 'Decidiamo'
+and I have a 'string' named 'petition title'
+and I have a 'string' named 'timestamp'
+and I have my 'issuer keypair'
+When I append 'timestamp' to 'petition title'
+and I create the hash of 'petition title'
+and I rename the 'hash' to 'upid'
+Then print the 'upid'
+and print the 'verifier' in 'issuer keypair'
+EOF
+
+
 # ------------
 # mail is sent
 # ------------
 # *click!*
 
-
-cat <<EOF > participant_email.json
-{"email": "bob@wonder.land",
- "petition_uid": "More privacy for all!"}
+cat <<EOF | debug request_credential.zen -a upid.json > credential_request.json
+Scenario credential
+Given I have a 'base64' named 'upid'
+When I create the credential keypair
+and I create the credential request
+Then print the 'credential request'
+and print the 'credential keypair'
 EOF
 
-# participant accepts the invite and visits the link
-# server uses this to generate a unique payload
-cat <<EOF | debug credential_issuance.zen -k issuer_keypair.json -a participant_email.json | tee signature_credential.json | jq .
+# extract the keypair and store it in the browser localstorage that opened the page
+echo "save in localstorage:"
+json_extract credential_keypair credential_request.json > credential_keypair.json
+json_join credential_keypair.json upid.json | tee client_localstore.json | jq .
+
+echo "magic send to server on page open:"
+json_remove credential_keypair credential_request.json
+cat credential_request.json | jq .
+
+# server signs the credential
+# BEWARE: this is free for all but the key is the JWT token session
+# the server does not know who is requesting the credential
+echo "magic server receives computes and sends this back on page open:"
+cat <<EOF | zexe credential_issuance.zen -k issuer_keypair.json -a credential_request.json | tee signature_credential.json | jq .
 Scenario credential
 Given that I am known as 'Decidiamo'
 and I have my 'issuer keypair'
-and I have a 'string' named 'email'
-and I have a 'string' named 'petition_uid'
-When I append 'email' to 'petition_uid'
-and I create the hash of 'petition_uid'
-and I create the credential keypair with secret key 'hash'
-and I create the credential request
-and I create the credential signature
-and I create the credentials
-Then print the 'credentials'
-and print the 'credential keypair'
-and print the 'verifier'
+and I have a 'credential request'
+When I create the credential signature
+Then print the 'credential signature'
 EOF
 
+echo "magic client receives back computes and saves in localstorage (associated to UPID):"
+cat <<EOF | debug credential_acquire.zen -a signature_credential.json -k credential_keypair.json | tee petition_credentials.json | jq .
+Scenario credential
+Given I have a 'credential signature'
+and I have a 'credential keypair'
+When I create the credentials
+Then print the 'credentials'
+EOF
+
+echo "save also result in localstorage:"
+json_join client_localstore.json petition_credentials.json | tee credentials_localstore.json | jq .
+
 # participant signs the petition and submits
-cat <<EOF | zexe signature_proof.zen -a signature_credential.json | tee sign_proof.json | jq .
+cat <<EOF | zexe signature_proof.zen -k credentials_localstore.json | tee sign_proof.json | jq .
 Scenario credential
 Scenario petition: sign petition
 Given I am 'Bob'
@@ -215,4 +220,3 @@ and the petition signature is just one more
 and I add the signature to the petition
 Then print the 'petition'
 EOF
-

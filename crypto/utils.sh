@@ -110,7 +110,7 @@ debug() {
 	out="$1"
 	shift 1
 	>&2 echo "test: $out"
-	tee "$out" | $Z -z $* 
+	tee "$out" | $Z -z $*
 	return $?
 }
 
@@ -122,4 +122,38 @@ success() {
 	echo "####################################"
 	echo
 	echo
+}
+
+function json_extract {
+	if ! [ -r extract.jq ]; then
+		cat <<EOF > extract.jq
+# break out early
+def filter(\$key):
+  label \$out
+  | foreach inputs as \$in ( null;
+      if . == null
+      then if \$in[0][0] == \$key then \$in
+           else empty
+           end
+      elif \$in[0][0] != \$key then break \$out
+      else \$in
+      end;
+      select(length==2) );
+
+reduce filter(\$key) as \$in ({};
+  setpath(\$in[0]; \$in[1]) )
+EOF
+	fi
+	jq -n -c --arg key "$1" --stream -f extract.jq "$2"
+}
+
+function json_remove {
+	tmp=`mktemp`
+	jq -M "del(.$1)" $2 > $tmp
+	mv $tmp $2
+}
+
+function json_join {
+  jq -s '.[0] * .[1]' $@
+#	jq -s . $@
 }
