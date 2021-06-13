@@ -1,3 +1,11 @@
+## [1.3.1](https://github.com/decidiamo/consiglio-crypto/compare/v1.3.0...v1.3.1) (2021-06-13)
+
+
+### Bug Fixes
+
+* ⬆️  Upgrade all deps ([8275ba0](https://github.com/decidiamo/consiglio-crypto/commit/8275ba096a6dbd610a5c42698e2b43568e303079))
+* 🔖  Fix version conflict for release ([0052c5b](https://github.com/decidiamo/consiglio-crypto/commit/0052c5bb8e568f4806d815d7af7fdf756b5b8b37))
+
 # [1.2.0](https://github.com/decidiamo/consiglio-crypto/compare/v1.1.0...v1.2.0) (2021-06-13)
 
 
